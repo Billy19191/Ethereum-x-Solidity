@@ -1,1 +1,8 @@
 .gitkeep
+node_modules
+package-lock.json
+dist
+.vscode
+*.log
+*.env
+*.local
