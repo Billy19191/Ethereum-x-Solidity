@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0; // Change from 0.8.30 to 0.8.19
+pragma solidity ^0.8.0;
 
 contract Inbox {
     string public message;
