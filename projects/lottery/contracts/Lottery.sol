@@ -23,4 +23,11 @@ contract Lottery {
                 )
             );
     }
+    function pickWinner() public returns (address) {
+        uint winnerIndex = random() % players.length;
+        address payable winner = payable(players[winnerIndex]);
+        winner.transfer(address(this).balance);
+        players = new address[](0);
+        return winner;
+    }
 }
