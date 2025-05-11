@@ -28,6 +28,9 @@ devDependencies:
   hardhat:
     specifier: ^2.23.0
     version: 2.23.0(typescript@5.8.3)
+  typescript:
+    specifier: ^5.8.3
+    version: 5.8.3
 
 packages:
 
