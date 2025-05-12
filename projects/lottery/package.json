@@ -2,6 +2,19 @@
   "name": "hardhat-project",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "hardhat": "^2.24.0"
+    "@types/chai": "^5.2.2",
+    "@types/mocha": "^10.0.10",
+    "chai": "4.3.7",
+    "hardhat": "^2.24.0",
+    "mocha": "^11.2.2",
+    "prettier": "^3.2.5"
+  },
+  "scripts": {
+    "test": "mocha --require ts-node/register 'test/**/*.ts'",
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.js --network localhost"
+  },
+  "dependencies": {
+    "ganache": "^7.9.2"
   }
 }

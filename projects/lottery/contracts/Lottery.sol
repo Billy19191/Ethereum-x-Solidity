@@ -23,11 +23,21 @@ contract Lottery {
                 )
             );
     }
-    function pickWinner() public returns (address) {
+
+    function pickWinner() public payable restricted returns (address) {
         uint winnerIndex = random() % players.length;
         address payable winner = payable(players[winnerIndex]);
         winner.transfer(address(this).balance);
         players = new address[](0);
         return winner;
+    }
+
+    modifier restricted() {
+        require(msg.sender == manager);
+        _;
+    }
+
+    function getPlayers() public view returns (address[] memory) {
+        return players;
     }
 }
