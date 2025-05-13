@@ -107,7 +107,7 @@ const HomePage: React.FC = () => {
       <div className="border border-black rounded p-6 mb-8">
         <h2 className="text-2xl font-semibold mb-3">Players Entered</h2>
         {players.length > 0 ? (
-          <ul className="list-disc pl-5">
+          <ul className="list-disc">
             {players.map((player, index) => (
               <li
                 key={index}
