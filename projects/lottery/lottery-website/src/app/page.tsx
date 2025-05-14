@@ -23,6 +23,17 @@ const HomePage: React.FC = () => {
     }
   }
 
+  const pickWinner = async () => {
+    const web3Instance = await web3
+    const accounts = await web3Instance.eth.requestAccounts()
+    const lotteryContract = await Lottery
+    const winnerAddress = await lotteryContract.methods.pickWinner().send({
+      from: accounts[0],
+      value: web3Instance.utils.toWei('0', 'ether'),
+    })
+    console.log('The winner is', winnerAddress)
+  }
+
   useEffect(() => {
     const fetchManager = async () => {
       try {
@@ -122,6 +133,19 @@ const HomePage: React.FC = () => {
         )}
       </div>
 
+      <div className="border border-black rounded p-6 mb-8">
+        <h2 className="text-2xl font-semibold mb-3">Pick a Winner</h2>
+        <p className="text-black/50 mb-3">
+          Only the manager can pick a winner. The winner will receive the entire
+          pool!
+        </p>
+        <button
+          onClick={pickWinner}
+          className="bg-black text-white font-bold py-2 px-4 rounded w-full mb-3 hover:bg-white hover:text-black hover:border hover:border-black transition duration-200"
+        >
+          Pick a Winner
+        </button>
+      </div>
       <p className="text-xl font-semibold text-center text-black">
         Get ready to win big!
       </p>
