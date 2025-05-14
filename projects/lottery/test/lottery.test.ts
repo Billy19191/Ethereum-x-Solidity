@@ -1,92 +1,87 @@
-import Web3 from 'web3'
-import { beforeEach, describe, it } from 'mocha'
-import ganache from 'ganache'
-import contractData from '../artifacts/contracts/Lottery.sol/Lottery.json'
-import assert from 'assert'
+import { expect } from 'chai'
+import { ethers } from 'hardhat'
+import { Lottery } from '../typechain-types/Lottery'
+import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers'
 
-let lottery: any
-const abi = contractData.abi
-const byteCode = contractData.bytecode
-let account: any
+describe('Lottery Contract', function () {
+  let lottery: any
+  let accounts: HardhatEthersSigner[]
+  let manager: HardhatEthersSigner
 
-const web3: Web3 = new Web3(ganache.provider())
+  beforeEach(async function () {
+    accounts = await ethers.getSigners()
+    manager = accounts[0]
 
-beforeEach(async () => {
-  account = await web3.eth.getAccounts()
-  lottery = await new web3.eth.Contract(abi)
-    .deploy({
-      data: byteCode,
-    })
-    .send({
-      from: account[0],
-      gas: '1000000',
-    })
-})
-
-describe('Lottery Contract', () => {
-  it('deploy a contract', () => {
-    assert.ok(lottery.options.address)
+    const Lottery = await ethers.getContractFactory('Lottery')
+    lottery = await Lottery.deploy()
   })
 
-  it('allow multiple account to enter', async () => {
-    await lottery.methods.enter().send({
-      from: account[0],
-      value: web3.utils.toWei('0.2', 'ether'),
-    })
-    await lottery.methods.enter().send({
-      from: account[1],
-      value: web3.utils.toWei('0.2', 'ether'),
-    })
-
-    const players = await lottery.methods.getPlayers().call({
-      from: account[0],
-    })
-
-    assert.equal(account[0], players[0])
-    assert.equal(account[1], players[1])
-    assert.equal(2, players.length)
+  it('deploys a contract', async function () {
+    expect(await lottery.target).to.be.a('string')
   })
 
-  it('requires a minimum amount of ether to enter', async () => {
+  it('sets the manager correctly', async function () {
+    expect(await lottery.manager()).to.equal(manager.address)
+  })
+
+  it('allows one account to enter', async function () {
+    await lottery.enter({ value: ethers.parseEther('0.02') })
+
+    const players = await lottery.getPlayers()
+
+    expect(players[0]).to.equal(manager.address)
+    expect(players.length).to.equal(1)
+  })
+
+  it('allows multiple accounts to enter', async function () {
+    await lottery.enter({ value: ethers.parseEther('0.02') })
+    await lottery
+      .connect(accounts[1])
+      .enter({ value: ethers.parseEther('0.02') })
+    await lottery
+      .connect(accounts[2])
+      .enter({ value: ethers.parseEther('0.02') })
+
+    const players = await lottery.getPlayers()
+
+    expect(players[0]).to.equal(manager.address)
+    expect(players[1]).to.equal(accounts[1].address)
+    expect(players[2]).to.equal(accounts[2].address)
+    expect(players.length).to.equal(3)
+  })
+
+  it('requires a minimum amount of ether to enter', async function () {
     try {
-      await lottery.methods.enter().send({
-        from: account[0],
-        value: web3.utils.toWei('0.01', 'ether'),
-      })
-      assert.fail('Expected transaction to fail')
-    } catch (err) {
-      assert.ok(err)
+      await lottery.enter({ value: ethers.parseEther('0.001') })
+      expect.fail('Should have thrown an error')
+    } catch (error) {
+      // Expected error
     }
   })
 
-  it('only manager can call pickWinner', async () => {
-    await lottery.methods.enter().send({
-      from: account[0],
-      value: web3.utils.toWei('0.2', 'ether'),
-    })
+  it('only manager can call pickWinner', async function () {
+    await lottery.enter({ value: ethers.parseEther('0.02') })
 
     try {
-      await lottery.methods.pickWinner().send({
-        from: account[1],
-      })
-      assert.fail('Expected transaction to fail')
-    } catch (err) {
-      assert.ok(err)
+      await lottery.connect(accounts[1]).pickWinner()
+      expect.fail('Should have thrown an error')
+    } catch (error) {
+      // Expected error
     }
   })
 
-  it('sends money to the winner and resets the players array', async () => {
-    await lottery.methods.enter().send({
-      from: account[0],
-      value: web3.utils.toWei('2', 'ether'),
-    })
+  it('sends money to the winner and resets the players array', async function () {
+    await lottery.enter({ value: ethers.parseEther('2') })
 
-    await lottery.methods.pickWinner().send({ from: account[0] })
+    const initialBalance = await ethers.provider.getBalance(manager.address)
+    await lottery.pickWinner()
+    const finalBalance = await ethers.provider.getBalance(manager.address)
 
-    const players = await lottery.methods
-      .getPlayers()
-      .call({ from: account[0] })
+    expect(finalBalance - initialBalance).to.be.greaterThan(
+      ethers.parseEther('1.8')
+    )
 
-    assert.equal(0, players.length)
+    const players = await lottery.getPlayers()
+    expect(players.length).to.equal(0)
   })
 })
