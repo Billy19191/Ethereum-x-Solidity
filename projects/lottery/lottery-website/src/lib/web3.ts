@@ -17,34 +17,37 @@ declare global {
   }
 }
 
-let web3Instance: Web3
+let web3Instance: Web3 | null = null
+let initialized = false
 
-const initializeWeb3 = async () => {
+async function initialize(): Promise<void> {
   if (typeof window === 'undefined' || !window.ethereum) {
     console.warn('MetaMask is not available.')
-    return web3Instance
+    initialized = true
+    return
   }
 
   try {
     const provider = window.ethereum
-    const web3 = new Web3(provider)
+    web3Instance = new Web3(provider)
 
     const accounts = (await provider.request({
       method: 'eth_requestAccounts',
     })) as string[]
 
     console.log('Connected accounts:', accounts)
-
-    web3Instance = web3
-    return web3
+    initialized = true
   } catch (error) {
     console.error('Failed to initialize Web3:', error)
-    return web3Instance
+    web3Instance = null
+    initialized = true
   }
 }
 
-const getWeb3 = async () => {
-  await initializeWeb3()
+async function getWeb3(): Promise<Web3 | null> {
+  if (!initialized) {
+    await initialize()
+  }
   return web3Instance
 }
 
