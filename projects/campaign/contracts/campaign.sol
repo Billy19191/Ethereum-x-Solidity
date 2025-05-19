@@ -50,8 +50,6 @@ contract Campaign {
         uint value,
         address recipient
     ) public payable restricted {
-        require(approvers[msg.sender]);
-
         Request storage newRequest = requests.push();
         newRequest.description = description;
         newRequest.recipient = recipient;
