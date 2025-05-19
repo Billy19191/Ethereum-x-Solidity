@@ -7,11 +7,13 @@ contract Campaign {
         uint value;
         address recipient;
         bool complete;
+        uint approvalCount;
+        mapping(address => bool) approvals;
     }
 
     address public manager;
     uint public minimumContribution;
-    address[] public approvers;
+    mapping(address => bool) public approvers;
     Request[] public requests;
 
     modifier restricted() {
@@ -25,8 +27,7 @@ contract Campaign {
 
     function contribute() public payable {
         require(msg.value >= minimumContribution);
-        approvers.push(msg.sender);
-        requests.push();
+        approvers[msg.sender] = true;
     }
 
     function createRequest(
@@ -34,12 +35,22 @@ contract Campaign {
         uint value,
         address recipient
     ) public payable restricted {
-        Request memory newRequest = Request({
-            description: description,
-            recipient: recipient,
-            value: value,
-            complete: false
-        });
-        requests.push(newRequest);
+        require(approvers[msg.sender]);
+
+        Request storage newRequest = requests.push();
+        newRequest.description = description;
+        newRequest.recipient = recipient;
+        newRequest.value = value;
+        newRequest.complete = false;
+        newRequest.approvalCount = 0;
+    }
+
+    function approveRequest(uint index) public payable {
+        Request storage request = requests[index];
+        require(approvers[msg.sender]);
+        require(!request.approvals[msg.sender]); //Haven't vote yet
+
+        request.approvals[msg.sender] = true;
+        request.approvalCount++;
     }
 }
