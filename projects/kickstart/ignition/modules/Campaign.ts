@@ -4,15 +4,9 @@
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules'
 
 const CampaignModule = buildModule('CampaignModule', (m) => {
-  // Campaign constructor requires a minimum contribution amount and creator address
-  const minimumContribution = 100 // Set an appropriate minimum in wei
-  const campaign = m.contract('Campaign', [
-    minimumContribution,
-    m.getAccount(0),
-  ])
-
   const campaignFactory = m.contract('CampaignFactory', [])
 
-  return { campaign, campaignFactory }
+  return { campaignFactory }
 })
+
 export default CampaignModule

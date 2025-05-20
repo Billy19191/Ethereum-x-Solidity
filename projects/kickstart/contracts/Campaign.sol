@@ -49,8 +49,6 @@ contract Campaign {
         uint value,
         address recipient
     ) public payable restricted {
-        require(approvers[msg.sender]);
-
         Request storage newRequest = requests.push();
         newRequest.description = description;
         newRequest.recipient = recipient;
@@ -63,7 +61,7 @@ contract Campaign {
         Request storage request = requests[index];
         require(approvers[msg.sender]);
         require(!request.approvals[msg.sender]); //Haven't vote yet
-        require(request.approvalCount > (request.approvalCount / 2));
+        // require(request.approvalCount > (request.approvalCount / 2));
 
         request.approvals[msg.sender] = true;
         request.approvalCount++;
