@@ -10,7 +10,7 @@ describe('Lending', () => {
   let ownerWallet: HardhatEthersSigner
   let userWallet: HardhatEthersSigner
 
-  before('Setup contracts and wallets', async () => {
+  beforeEach('Setup contracts and wallets', async () => {
     const signers = await hre.ethers.getSigners()
     ownerWallet = signers[0]
     userWallet = signers[1]
@@ -45,10 +45,16 @@ describe('Lending', () => {
     )
     expect(userSupplyBalance).equal(500000000000000000000000n)
   })
+
   it('user can withdraw their deposit from pool', async () => {
+    await token
+      .connect(userWallet)
+      .approve(await lendingContract.getAddress(), 500000000000000000000000n)
+    await lendingContract
+      .connect(userWallet)
+      .depositTokens(500000000000000000000000n)
     const withdrawAmount = 500000000000000000000000n
     await lendingContract.connect(userWallet).withdrawTokens(withdrawAmount)
-
     const actualTokenBalance = await token.balanceOf(
       await userWallet.getAddress()
     )

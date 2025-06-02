@@ -22,7 +22,7 @@ contract Lending {
 
         require(
             token.transferFrom(msg.sender, address(this), _amount),
-            "Transfer failed"
+            "Token transferFrom failed"
         );
 
         depositList[msg.sender] += _amount;
@@ -35,7 +35,7 @@ contract Lending {
             "You don't have enough deposited"
         );
         require(_amount <= totalDeposit, "Insufficient balance");
-        require(token.transfer(msg.sender, _amount), "Transfer fund failed");
+        require(token.transfer(msg.sender, _amount), "Token transfer failed");
         depositList[msg.sender] -= _amount;
         totalDeposit -= _amount;
     }
