@@ -1,5 +1,6 @@
 import hre from 'hardhat'
 import { expect } from 'chai'
+import '@nomicfoundation/hardhat-chai-matchers'
 import { Lending, TestToken } from '../typechain-types'
 import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers'
 
@@ -43,5 +44,22 @@ describe('Lending', () => {
       await userWallet.getAddress()
     )
     expect(userSupplyBalance).equal(500000000000000000000000n)
+  })
+  it('user can withdraw their deposit from pool', async () => {
+    const withdrawAmount = 500000000000000000000000n
+    await lendingContract.connect(userWallet).withdrawTokens(withdrawAmount)
+
+    const actualTokenBalance = await token.balanceOf(
+      await userWallet.getAddress()
+    )
+    expect(withdrawAmount).equal(actualTokenBalance)
+  })
+
+  it('should revert when user tries to withdraw more than deposited', async () => {
+    await expect(
+      lendingContract
+        .connect(userWallet)
+        .withdrawTokens(600000000000000000000000n)
+    ).to.be.reverted
   })
 })

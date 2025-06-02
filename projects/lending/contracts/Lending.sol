@@ -30,10 +30,12 @@ contract Lending {
     }
 
     function withdrawTokens(uint256 _amount) public {
-        require(msg.sender == owners, "Only owner can withdraw");
+        require(
+            depositList[msg.sender] >= _amount,
+            "You don't have enough deposited"
+        );
         require(_amount <= totalDeposit, "Insufficient balance");
-
-        require(token.transfer(msg.sender, _amount), "Transfer failed");
+        require(token.transfer(msg.sender, _amount), "Transfer fund failed");
         depositList[msg.sender] -= _amount;
         totalDeposit -= _amount;
     }
