@@ -56,7 +56,10 @@ contract Lending {
             "Token transferFrom failed"
         );
 
-        depositList[msg.sender] += _amount;
+        updateGlobalIndex();
+        uint256 scaledAmount = (_amount * 1e18) / liquidityIndex;
+        depositList[msg.sender] += scaledAmount;
+
         totalDeposit += _amount;
     }
 
