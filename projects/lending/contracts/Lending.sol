@@ -57,6 +57,7 @@ contract Lending {
         );
 
         updateGlobalIndex();
+        //Like share holder allocation
         uint256 scaledAmount = (_amount * 1e18) / liquidityIndex;
         depositList[msg.sender] += scaledAmount;
 
