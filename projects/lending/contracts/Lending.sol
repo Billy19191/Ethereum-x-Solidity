@@ -64,6 +64,8 @@ contract Lending {
         totalDeposit += _amount;
     }
 
+    function borrowTokens() public {}
+
     function withdrawTokens(uint256 _amount) public {
         require(
             depositList[msg.sender] >= _amount,
