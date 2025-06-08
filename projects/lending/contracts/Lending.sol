@@ -14,6 +14,9 @@ contract Lending {
     uint256 public lastUpdateTime;
     mapping(address => uint256) public userDepositIndex;
 
+    mapping(address => uint256) public borrowList;
+    uint256 public borrowIndex = 1e18;
+
     constructor(address _tokenAddress) {
         owners = msg.sender;
         token = IERC20(_tokenAddress);
@@ -31,16 +34,30 @@ contract Lending {
         return baseRate + (utilizationRate * slope) / 1e18;
     }
 
+    function getCurrentSupplyRate() public view returns (uint256) {
+        if (totalDeposit == 0) return 0;
+        uint256 borrowRate = getCurrentBorrowRate();
+        uint256 utilizationRate = (totalBorrow * 1e18) / totalDeposit;
+        uint reserveFactor = 10e16; //10%
+        return
+            (((borrowRate * utilizationRate) / 1e18) * (1e18 - reserveFactor)) /
+            1e18;
+    }
+
     function updateGlobalIndex() internal {
-        uint256 timeElapse = block.timestamp - lastUpdateTime;
+        uint256 timeElapse = block.timestamp - lastUpdateTime; //Time dif: Now - last
         if (timeElapse > 0 && totalBorrow > 0) {
+            // For borrowIndex (what borrowers owe)
             uint256 borrowRate = getCurrentBorrowRate();
-            uint256 totalInterestEarned = (totalBorrow *
-                borrowRate *
-                timeElapse) / (365 days * 1e18);
-            liquidityIndex +=
-                (liquidityIndex * totalInterestEarned) /
-                totalDeposit;
+            uint256 borrowInterest = (totalBorrow * borrowRate * timeElapse) /
+                (365 days * 1e18);
+            borrowIndex += (borrowIndex * borrowInterest) / totalBorrow;
+
+            // For liquidityIndex (what depositors earn)
+            uint256 supplyRate = getCurrentSupplyRate();
+            uint256 supplyInterest = (totalDeposit * supplyRate * timeElapse) /
+                (365 days * 1e18);
+            liquidityIndex += (liquidityIndex * supplyInterest) / totalDeposit;
         }
         lastUpdateTime = block.timestamp;
     }
