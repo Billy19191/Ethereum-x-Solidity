@@ -68,12 +68,12 @@ contract Lending {
 
     function withdrawTokens(uint256 _amount) public {
         require(
-            depositList[msg.sender] >= _amount,
+            (depositList[msg.sender] * liquidityIndex) / 1e18 >= _amount,
             "You don't have enough deposited"
         );
-        require(_amount <= totalDeposit, "Insufficient balance");
+
         require(token.transfer(msg.sender, _amount), "Token transfer failed");
-        depositList[msg.sender] -= _amount;
-        totalDeposit -= _amount;
+        uint256 scaledAmount = (_amount * 1e18) / liquidityIndex;
+        depositList[msg.sender] -= scaledAmount;
     }
 }
